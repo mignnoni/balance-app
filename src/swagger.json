@@ -1,0 +1,1391 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Balance App Documentation",
+        "description": "This an API",
+        "version": "1.0.0",
+        "contact": {
+            "email": "adm@balanceapp.com.br"
+        }
+
+    },
+    "paths": {
+        "/users": {
+            "post": {
+                "tags": ["User"],
+                "summary": "Cadastro de um novo usuário",
+                "descrpition": "Cria um novo usuário",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": {
+                                    "name": "New user test",
+                                    "email": "mail@test.com",
+                                    "password": "1234"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "created"
+                    },
+                    "400": {
+                        "description": "User already exists"
+                    }
+                }
+            }
+        },
+        "/products": {
+            "post": {
+                "tags": ["Products"],
+                "summary": "Cadastro de um novo produto",
+                "descrpition": "Cria um novo produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                      },
+                      "400": {
+                        "description": "Product already exists!"
+                      }
+                } 
+            },
+            "get": {
+                "tags": ["Products"],
+                "summary": "Listagem de produtos",
+                "description": "Lista todos os produtos do usuário",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/getProduct"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{product_id}": {
+            "put": {
+                "tags": ["Products"],
+                "summary": "Alteração de um produto",
+                "description": "Altera os dados de um produto, podendo alterar internal_code, name, unit, brand, inventory,",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/updateProduct"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "400": {
+                        "description": ["Product not found", "Internal code already exists"]
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Products"],
+                "summary": "Exclusão de um produto",
+                "description": "Exclui um produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Product not found", "Incorrect user" ]
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/costs": {
+            "post": {
+                "tags": ["Products Costs"],
+                "summary": "Cadastro de um novo custo para o produto",
+                "description": "Cadastra um novo custo para o produto e soma esse custo ao custo total do produto, é possível verificar essa mudança na rota de listagem de produtos",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/productCost"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found", "Amount should be bigger than 0"]
+                    }
+                }
+            },
+            "get": {
+                "tags": ["Products Costs"],
+                "summary": "Listagem dos custos de um produto",
+                "description": "Lista todos os custos cadastrados de um produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/getProductCost"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found"]
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/costs/{id}": {
+            "put": {
+                "tags": ["Products Costs"],
+                "summary": "Alteração de um custo de produto",
+                "description": "Altera o nome ou o valor de um custo de produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Product Cost id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"    
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/updateProductCost"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found", "Product cost not found"]
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Products Costs"],
+                "summary": "Exclusão de um custo de produto",
+                "description": "Exclui um custo de produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Product Cost id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"    
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found", "Product cost not found"]
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/kit": {
+            "post": {
+                "tags": ["Kit Products"],
+                "summary": "Cadastro de um novo Kit Product",
+                "description": "Kit Product é o nome que dei para cadastrar um produto que pertence a um Kit, então ele precisa ter o main_product, que é o 'Produto pai' e recebe o kit_item, que é o produto que vai fazer parte do kit, juntamente com a quantidade desse kit_item. Exemplo: main_product = kit com 3 canecas; kit_item = caneca; quantidade = 3;",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/kitProduct"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Products not found", "Quantity must be bigger than 0"]
+                    }
+                }
+            },
+            "get": {
+                "tags": ["Kit Products"],
+                "summary": "Listagem dos Kit Products",
+                "description": "Retorna uma lista com todos os kit products de um main_product, mostrando quais são os kit_items dele, e também o kit_item_quantity",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/getKitProducts"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found"]
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/kit/{id}": {
+            "delete": {
+                "tags": ["Kit Products"],
+                "summary": "Exclusão de um kit product",
+                "description": "Exclui um kit product",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Kit Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"    
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Kit Product not found"]
+                    }
+                }
+            }
+        },
+        "/marketplaces": {
+            "post": {
+                "tags": ["Marketplaces"],
+                "summary": "Cadastro de um novo marketplace",
+                "description": "Cadastra um novo marketplace",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": ["User not found"]
+                    }
+                }
+            },
+            "get": {
+                "tags": ["Marketplaces"],
+                "summary": "Listagem dos marketplaces do usuário",
+                "description": "Lista todos os marketplaces cadastrados pelo usuário",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "user_id": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect user"
+                    }
+                }
+            }
+        },
+        "/marketplaces/{id}": {
+            "put": {
+                "tags": ["Marketplaces"],
+                "summary": "Alteração do nome do marketplace",
+                "description": "Altera o nome de um marketplace",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Marketplace id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Marketplace not found"]
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Marketplaces"],
+                "summary": "Exclusão de um marketplace",
+                "description": "Exclui um marketplace",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Marketplace id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Marketplace not found"]
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/sale-prices": {
+            "post": {
+                "tags": ["Products Sale Prices"],
+                "summary": "Cadastro de um novo preço de venda para o produto",
+                "description": "Cadastra um novo preço de venda para o produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/productSalePrice"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Value must be bigger or equal to 0", "Product not found", "Marketplace not found", "Sale price for this product and marketplace already exists"]
+                    }
+                }
+            },
+            "get": {
+                "tags": ["Products Sale Prices"],
+                "summary": "Listagem dos preços de venda de um produto",
+                "description": "Lista todos os preços de venda cadastrados de um produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/getProductSalePrices"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found"]
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/sale-prices/{id}": {
+            "put": {
+                "tags": ["Products Sale Prices"],
+                "summary": "Alteração de um preço de venda de produto",
+                "description": "Altera alguma taxa, preço de venda praticado, ou lucro esperado de um preço de venda",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Sale Price id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"    
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/updateProductSalePrice"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Sale price not found", "Product not found", "Value must be bigger or equal to 0", "Sale price for this product and marketplace already exists"]
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Products Sale Prices"],
+                "summary": "Exclusão de um preço de venda de produto",
+                "description": "Exclui um preço de venda de produto",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Sale Price id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"    
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Product not found", "Sale price not found"]
+                    }
+                }
+            }
+        },
+        "/sales/{month}": {
+            "post": {
+                "tags": ["Sales"],
+                "summary": "Cadastro de uma nova venda",
+                "description": "Cadastra uma nova venda",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "path",
+                        "description": "Month in number",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "marketplace_id",
+                        "in": "query",
+                        "description": "Marketplace id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "quantity": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": ["Invalid month", "Quantity must be bigger then 0", "Sale price not found", "This sale for this marketplace already exists for this month"]
+                    }
+                }
+            }
+        },
+        "/sales/results" : {
+            "get": {
+                "tags": ["Sales"],
+                "summary": "Listagem das vendas do usuário",
+                "description": "Lista todas as vendas por mês e/ou produto e/ou marketplace",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "description": "Month in number",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "description": "Product id",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "marketplace_id",
+                        "in": "query",
+                        "description": "Marketplace id",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/getSales"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": ["Invalid month"]
+                    }
+                }
+            }
+        },
+        "/sales/{id}": {
+            "put": {
+                "tags": ["Sales"],
+                "summary": "Alteração de uma venda",
+                "description": "Altera a quantidade de vendas",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Sale id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "quantity": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Sale not found"]
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Sales"],
+                "summary": "Exclusão de uma venda",
+                "description": "Exclui uma venda",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Sale id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Sale not found"]
+                    }
+                }
+            }
+        },
+        "/sales/other-price/{month}": {
+            "post": {
+                "tags": ["Sales"],
+                "summary": "Cadastro de uma venda com valores diferentes",
+                "description": "Necessário se por exemplo, no mês X o produto teve alguma alteração nos custos ou no preço de venda e você alterou esses custos no sistema, mas você realizou algumas vendas com os valores antigos, e quer ter o lucro real sobre os valores antigos praticados",
+                "security": [
+                    { "bearerAuth": [] }
+                ],
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "path",
+                        "description": "Month in number",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "description": "Product id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "marketplace_id",
+                        "in": "query",
+                        "description": "Marketplace id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/saleWithDifferentPrices"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": ["Incorrect user", "Invalid month", "Quantity must be bigger then 0", "You must have a previous sale to do this"]
+                    }
+                }
+            }
+        },
+        "/sessions": {
+            "post": {
+              "tags": ["Authenticate"],
+              "summary": "Create a token",
+              "description": "Create a token",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        }
+                      },
+                      "example": {
+                          "email": "mail@test.com",
+                          "password": "123"
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": { 
+                  "description": "Success"
+                },
+                "400": {
+                  "description": "Email or password incorrect!"
+                }
+              }
+            }
+        },
+        "/refresh-token": {
+            "post": {
+                "tags": ["Authenticate"],
+                "summary": "Refresh Token",
+                "description": "Refresh token",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "token": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": { 
+                    "description": "Success"
+                  },
+                  "400": {
+                    "description": ["Refresh token missing", "Refresh Token does not exists"]
+                  }
+                }
+              }
+        },
+        "/password/forgot": {
+            "post": {
+                "tags": ["Password"],
+                "summary": "Envio de e-mail de recuperação de senha",
+                "description": "Envia e-mail de recuperação de senha",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "User does not exists"
+                    }
+                }
+            }
+        },
+        "/password/reset": {
+            "post": {
+                "tags": ["Password"],
+                "summary": "Alteração da senha do usuário",
+                "description": "Altera a senha do usuário",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "description": "Reset password token",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": ["Invalid token", "Token expired"]
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Product": {
+            "type": "object",
+            "properties": {
+                "internal_code": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "is_kit": {
+                    "type": "boolean"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "inventory": {
+                    "type": "number"
+                }
+
+            }
+        },
+        "getProduct": {
+            "type": "array",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "internal_code": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "is_kit": {
+                    "type": "boolean"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "inventory": {
+                    "type": "number"
+                },
+                "total_costs": {
+                    "type": "number"
+                }
+
+            }
+        },
+        "updateProduct": {
+            "type": "object",
+            "properties": {
+                "internal_code": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "inventory": {
+                    "type": "number"
+                }
+
+            }
+        },
+        "productCost": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "getProductCost": {
+            "type": "array",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "updateProductCost": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "kitProduct": {
+            "type": "object",
+            "properties": {
+                "kit_item_id": {
+                    "type": "string"
+                },
+                "kit_item_quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "getKitProducts": {
+            "type": "array",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "main_product_id": {
+                    "type": "string"
+                },
+                "kit_item_id": {
+                    "type": "string"
+                },
+                "kit_item_quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "productSalePrice": {
+            "type": "object",
+            "properties": {
+                "marketplace_id": {
+                    "type": "string"
+                },
+                "tax_fee": {
+                    "type": "number"
+                },
+                "comission_fee": {
+                    "type": "number"
+                },
+                "fixed_fee": {
+                    "type": "number"
+                },
+                "expected_profit": {
+                    "type": "number"
+                },
+                "practiced_sale_price": {
+                    "type": "number"
+                }
+            }
+        },
+        "getProductSalePrices": {
+            "type": "array",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "marketplace_id": {
+                    "type": "string"
+                },
+                "tax_fee": {
+                    "type": "number"
+                },
+                "comission_fee": {
+                    "type": "number"
+                },
+                "fixed_fee": {
+                    "type": "number"
+                },
+                "expected_profit": {
+                    "type": "number"
+                },
+                "practiced_sale_price": {
+                    "type": "number"
+                },
+                "suggested_sale_price": {
+                    "type": "number"
+                },
+                "real_profit": {
+                    "type": "number"
+                }
+            }
+        },
+        "updateProductSalePrice": {
+            "type": "object",
+            "properties": {
+                "tax_fee": {
+                    "type": "number"
+                },
+                "comission_fee": {
+                    "type": "number"
+                },
+                "fixed_fee": {
+                    "type": "number"
+                },
+                "expected_profit": {
+                    "type": "number"
+                },
+                "practiced_sale_price": {
+                    "type": "number"
+                }
+            }
+        },
+        "getSales": {
+            "type": "array",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "marketplace_id": {
+                    "type": "string"
+                },
+                "month": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "profit": {
+                    "type": "number"
+                },
+                "total_profit": {
+                    "type": "number"
+                }
+
+            }
+        },
+        "saleWithDifferentPrices": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "number"
+                },
+                "tax_fee": {
+                    "type": "number"
+                },
+                "comission_fee": {
+                    "type": "number"
+                },
+                "fixed_fee": {
+                    "type": "number"
+                },
+                "practiced_sale_price": {
+                    "type": "number"
+                },
+                "total_costs": {
+                    "type": "number"
+                }
+            }
+        }
+
+    },
+    "components": {
+        "securitySchemes": {
+          "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+          }
+        }
+      }
+    }
+
+
+
+
+
+
